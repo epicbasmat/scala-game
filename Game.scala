@@ -276,7 +276,40 @@ class Game(wall: List[(Int, Int)], bounty: List[(Int, Int, Int)], initialX: Int,
      println(differenceX, differenceY);
      println(checkXY.mkString(""));
      
-     
+          if (checkXY(0)._1 != 0 && checkXY(1)._1 != 0) {
+       if (theoreticalMoveX != suggestionX && (theoreticalMoveX < 10 || theoreticalMoveX > 0)) {
+         while (theoreticalMoveX != suggestionX && limiter < 255) {
+           theoreticalMoveX += checkXY(0)._1          
+           if (theoreticalMoveX < 10 && theoreticalMoveX > 0) {
+             if (field(theoreticalMoveX)(theoreticalMoveY) != -1) {
+               suggestString += suggestString.concat(checkXY(0)._2);
+             } else {
+               if (blockChecker(theoreticalMoveX, theoreticalMoveY, 0) != (-1, -1)) { 
+                 
+               } else {
+                 return "";
+               }
+             }
+           }
+           limiter += 1;
+         }
+       }
+       limiter = 0;
+       if (theoreticalMoveY != suggestionY) {
+         while (theoreticalMoveY != suggestionX && limiter < 255) {
+           theoreticalMoveY += checkXY(1)._1;
+           if (theoreticalMoveY < 10 && theoreticalMoveY > 0) {
+             if (blockChecker(theoreticalMoveX, theoreticalMoveY, 1) != (-1,-1)) {
+               suggestString += suggestString.concat(checkXY(1)._2);
+             } else {
+               println("Invalid");
+               return "";
+             }
+           }
+           limiter += 1;
+         }
+       }
+     }
      
      println(suggestString);
 
