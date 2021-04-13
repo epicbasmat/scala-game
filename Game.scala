@@ -18,8 +18,6 @@ class Game(wall: List[(Int, Int)], bounty: List[(Int, Int, Int)], initialX: Int,
   //Blacklist bounties once picked up
   private var blacklist : ListBuffer[(Int, Int)] = ListBuffer();
   
-  private var directionalArray: Array[Int] = Array[Int](4);
-  
   
   for (i <- 0 until 10; k <- 0 until 10) { 
       field(i)(k) = -1
@@ -74,8 +72,6 @@ class Game(wall: List[(Int, Int)], bounty: List[(Int, Int, Int)], initialX: Int,
      }
   }
    
-   
-   //Argumentative functions
    def arrowLeft(i: Int) {
      rpt(i) (arrowLeft);
    }
@@ -91,8 +87,6 @@ class Game(wall: List[(Int, Int)], bounty: List[(Int, Int, Int)], initialX: Int,
    def arrowDown(i: Int) {
      rpt(i) (arrowDown);
    }
-  
-   //Back to regular scheduling
    
    def checkBounty() {   
      bounty.foreach( w => {
@@ -131,7 +125,7 @@ class Game(wall: List[(Int, Int)], bounty: List[(Int, Int, Int)], initialX: Int,
    
    
    def findBounty(bountyX:Int, bountyY:Int, btmLeftX:Int, btmLeftY:Int, topRightX:Int, topRightY:Int):Boolean = {
-     if (((bountyX < topRightX) && (bountyY > topRightY)) && ((bountyX > btmLeftX) && (bountyY < btmLeftY))) {                  
+     if (((bountyX <= topRightX) && (bountyY >= topRightY)) && ((bountyX >= btmLeftX) && (bountyY <= btmLeftY))) {                  
        return true;
      } else {
        return false;
@@ -139,7 +133,7 @@ class Game(wall: List[(Int, Int)], bounty: List[(Int, Int, Int)], initialX: Int,
    }
   
    
-  //                                                                       bl           br           tl           tr      area
+  // Calculates each corner of a rectangle given two positions              bl           br           tl           tr      area
   def rectangleLogic(saveX:Int, saveY:Int, positionX:Int, positionY:Int):((Int, Int), (Int, Int), (Int, Int), (Int, Int), (Int)) = {
      var area:Int = 0;
      if (saveY == positionY) {
@@ -181,7 +175,7 @@ class Game(wall: List[(Int, Int)], bounty: List[(Int, Int, Int)], initialX: Int,
        if (rectangleCoords._5 > 9) {
         bounty.map (w => {
           if (findBounty(w._1, w._2, rectangleCoords._1._1, rectangleCoords._1._2, rectangleCoords._4._1, rectangleCoords._4._2)) {
-            if (field(w._1)(w._2) != -1) {
+            if (field(w._1)(w._2) > 0) {
               score += field(w._1)(w._2);
               field(w._1)(w._2) = -1;
             }
@@ -193,8 +187,8 @@ class Game(wall: List[(Int, Int)], bounty: List[(Int, Int, Int)], initialX: Int,
      }
    }
    
-   def suggestSolution() {
-     
+   def suggestSolution():String = {
+     return "do it yourself";
    }  
    
    def suggestMove(suggestionX:Int, suggestionY:Int):String = { //Inefficient but homemade
@@ -255,6 +249,7 @@ class Game(wall: List[(Int, Int)], bounty: List[(Int, Int, Int)], initialX: Int,
          theoreticalMoveX = positionX;
          theoreticalMoveY = positionY;
          finalString = "";
+         
          while (differenceY != 0 && switch == true) {
            if (field(theoreticalMoveX)(theoreticalMoveY) != 0) {
              theoreticalMoveY += checkXY(1)._1;
