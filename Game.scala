@@ -137,122 +137,75 @@ class Game(wall: List[(Int, Int)], bounty: List[(Int, Int, Int)], initialX: Int,
        return false;
      }
    }
+  
    
-  def rectangleLogic(saveXCheck: Boolean, saveYCheck:Boolean) = {
+  //                                                                       bl           br           tl           tr      area
+  def rectangleLogic(saveX:Int, saveY:Int, positionX:Int, positionY:Int):((Int, Int), (Int, Int), (Int, Int), (Int, Int), (Int)) = {
      var area:Int = 0;
-     //true -> saveX|Y is greater than positionX|Y
-     //TODO: rewrite cuz lots of repeated code that could be  like findBounty.
-     
-     if (saveXCheck && saveYCheck) { //top left 
-       area = (saveX - positionX + 1) * (saveY - positionY + 1);    
-       if (area > 9) {
-         bounty.map( w => {
-           if (findBounty(w._1, w._2, positionX, saveY, saveX , positionY)) {
-             if (field(w._1)(w._2) != -1) {
-               score += field(w._1)(w._2);
-             }
-           } else {
-             
-           }
-         });
-         saveX = -1;
-         saveY = -1;
+     if (saveY == positionY) {
+       if (saveX > positionX) {
+         area = saveX - positionX;
+         return ((positionX, positionY), (saveX, saveY), (positionX, positionY), (saveX, saveY), area);
+       } else if (saveX < positionX) {
+         area = positionX - saveX;
+         return ((saveX, saveY), (positionX, positionY), (saveX, saveY), (positionX, positionY), area);
        }
-     } else if (saveXCheck == false && saveYCheck) { //top right
-       area = (positionX - saveX + 1) * (saveY - positionY + 1);    
-       if (area > 9) {
-         bounty.map( w => {
-           if (findBounty(w._1, w._2, saveX, saveY, positionX, positionY)) {
-             if (field(w._1)(w._2) != -1) {
-               score += field(w._1)(w._2);
-             }
-           } else {
-           
-           }
-         });
-         saveX = -1;
-         saveY = -1;
-       }
-     } else if (saveXCheck && saveYCheck == false) { //bottom left 
-       area = (saveX - positionX + 1) * (positionY - saveY + 1);    
-       
-       if (area > 9) {
-         bounty.map( w => {
-           if (findBounty(w._1, w._2, positionX, positionY, saveX, saveY)) {
-             if (field(w._1)(w._2) != -1) {
-               score += field(w._1)(w._2);
-             }
-           } else {
-             
-           }
-         });
-         saveX = -1;
-         saveY = -1;
-       } 
-     } else if (saveXCheck == false && saveYCheck == false) {  // bottom right
-       area = (positionX - saveX + 1) * (positionY - saveY + 1);  
-       if (area > 9) {
-         bounty.map( w => {
-           if (findBounty(w._1, w._2, saveX, positionY, positionX, saveY)) {
-             if (field(w._1)(w._2) != -1) {
-               score += field(w._1)(w._2);
-             }
-           } else {
-             
-           }
-         });
-         saveX = -1;
-         saveY = -1;
+     } else if (saveX == positionX) {
+       if (saveY > positionY) {
+         area = saveY - positionY;
+         return ((positionX, positionY), (positionX, positionY), (saveX, saveY), (saveX, saveY), area);
+       } else if (positionY > saveY) {
+         area = positionY - saveY;
+         return ((saveX, saveY), (saveX, saveY), (positionX, positionY), (positionX, positionY), area);
        }
      }
+     if (saveX > positionX && saveY < positionY) { 
+       area = (saveX - positionX + 1) * (positionY - saveY + 1); 
+       return ((positionX, positionY), (saveX, positionY), (positionX, saveY), (saveX, saveY), area); 
+     } else if (positionX > saveX && positionY < saveY) {
+       area = (positionX - saveX + 1) * (saveY - positionY + 1); 
+       return ((saveX, saveY), (positionX, saveY), (saveX, positionY), (positionX, positionY), area);
+     } else if (saveX > positionX && saveY > positionY) {
+       area = (saveX - positionX + 1) * (saveY - positionY + 1); 
+       return ((positionX, saveY), (saveX, saveY), (positionX, positionY), (saveX, positionY), area);
+     } else if (positionX > saveX && positionY > saveY) {
+       area = (positionX - saveX + 1) * (positionY - saveY + 1); 
+       return ((saveX, positionY), (positionX, positionY), (saveX, saveY), (positionX, saveY), area);
+     }
+     return ((-1,-1), (-1,-1), (-1, -1), (-1, -1), -1);
    }
    
-   def checkBounties() {
-       var saveXCheck:Boolean = false;
-       var saveYCheck:Boolean = false;
-       if (saveX > positionX) {
-         saveXCheck = true;
-       }; if (saveY > positionY) {
-         saveYCheck = true;
-       }       
-       
-       rectangleLogic(saveXCheck, saveYCheck);
+   def checkBounties() {       
+     var rectangleCoords = rectangleLogic(saveX, saveY, positionX, positionY);
+     if (saveX != -1 && saveY != -1) {
+       if (rectangleCoords._5 > 9) {
+        bounty.map (w => {
+          if (findBounty(w._1, w._2, rectangleCoords._1._1, rectangleCoords._1._2, rectangleCoords._4._1, rectangleCoords._4._2)) {
+            if (field(w._1)(w._2) != -1) {
+              score += field(w._1)(w._2);
+              field(w._1)(w._2) = -1;
+            }
+          }
+        })
+       saveX = -1;
+       saveY = -1;
+       } 
+     }
    }
    
    def suggestSolution() {
      
-   }
-   
-   def blockChecker(moveX:Int, moveY:Int, direction:Int): (Int, Int) = {
-
-     direction match {
-       case 0 => { //lr
-         for (i <- 0 to 9){
-           if (field(moveX)(i) > -1) {
-             return (moveX, i);
-           }
-         }
-       } case 1 => {//ud
-           for (i <- 0 to 9){
-             if (field(i)(moveY) > -1) {
-               println(s"field($moveY, $i)");
-               return (i, moveY);
-             }
-           }
-        }   
-     }
-     return (-1, -1);
-   }
-   
+   }  
    
    def suggestMove(suggestionX:Int, suggestionY:Int):String = { //Inefficient but homemade
      var theoreticalMoveX = positionX;
      var theoreticalMoveY = positionY;
      var differenceX = suggestionX - theoreticalMoveX;
      var differenceY = suggestionY - theoreticalMoveY;
-     var checkXY : List[(Int, String)] = List();
+     var switch:Boolean = false;
      var limiter:Int = 0;
-     var suggestString:String = "";
+     var checkXY : List[(Int, String)] = List();
+     var finalString:String = "";
      
      if (differenceX < 0) {
        checkXY = checkXY:+((-1, "l"));
@@ -270,53 +223,65 @@ class Game(wall: List[(Int, Int)], bounty: List[(Int, Int, Int)], initialX: Int,
        checkXY = checkXY:+((0, ""));
      }
      
-     println("==DIAGNOSTICS==");
-     println(positionX, positionY);
-     println(suggestionX, suggestionY);
-     println(differenceX, differenceY);
-     println(checkXY.mkString(""));
-     
-          if (checkXY(0)._1 != 0 && checkXY(1)._1 != 0) {
-       if (theoreticalMoveX != suggestionX && (theoreticalMoveX < 10 || theoreticalMoveX > 0)) {
-         while (theoreticalMoveX != suggestionX && limiter < 255) {
-           theoreticalMoveX += checkXY(0)._1          
-           if (theoreticalMoveX < 10 && theoreticalMoveX > 0) {
-             if (field(theoreticalMoveX)(theoreticalMoveY) != -1) {
-               suggestString += suggestString.concat(checkXY(0)._2);
-             } else {
-               if (blockChecker(theoreticalMoveX, theoreticalMoveY, 0) != (-1, -1)) { 
-                 
-               } else {
-                 return "";
-               }
-             }
-           }
-           limiter += 1;
-         }
-       }
-       limiter = 0;
-       if (theoreticalMoveY != suggestionY) {
-         while (theoreticalMoveY != suggestionX && limiter < 255) {
-           theoreticalMoveY += checkXY(1)._1;
-           if (theoreticalMoveY < 10 && theoreticalMoveY > 0) {
-             if (blockChecker(theoreticalMoveX, theoreticalMoveY, 1) != (-1,-1)) {
-               suggestString += suggestString.concat(checkXY(1)._2);
-             } else {
-               println("Invalid");
-               return "";
-             }
-           }
-           limiter += 1;
-         }
-       }
+     if (suggestionX > 9 || suggestionY > 9) {
+       return "";
      }
      
-     println(suggestString);
-
-     return suggestString;
-     
+     while (limiter < 255 && differenceX != 0 && differenceY != 0) {    
+       while (differenceX != 0 && switch == false) {
+         if (field(theoreticalMoveX)(theoreticalMoveY) != 0) {
+           theoreticalMoveX += checkXY(0)._1;
+           finalString += checkXY(0)._2;
+           differenceX = suggestionX - theoreticalMoveX;
+           differenceY = suggestionY - theoreticalMoveY;
+         }
+         else {
+           switch = true;
+         }
+       }
+       while (differenceY != 0 && switch == false) {
+         if (field(theoreticalMoveX)(theoreticalMoveY) != 0) {
+           theoreticalMoveY += checkXY(1)._1;
+           finalString += checkXY(1)._2;
+           differenceX = suggestionX - theoreticalMoveX;
+           differenceY = suggestionY - theoreticalMoveY;
+         }
+         else {
+           switch = true;
+         }
+       }
+       
+       if (switch) {
+         theoreticalMoveX = positionX;
+         theoreticalMoveY = positionY;
+         finalString = "";
+         while (differenceY != 0 && switch == true) {
+           if (field(theoreticalMoveX)(theoreticalMoveY) != 0) {
+             theoreticalMoveY += checkXY(1)._1;
+             finalString += checkXY(1)._2;
+             differenceX = suggestionX - theoreticalMoveX;
+             differenceY = suggestionY - theoreticalMoveY;
+           }
+           else {
+             return "";
+           }
+         }
+         while (differenceX != 0 && switch == true) {
+           if (field(theoreticalMoveX)(theoreticalMoveY) != 0) {
+               theoreticalMoveX += checkXY(0)._1;
+               finalString += checkXY(0)._2;
+               differenceX = suggestionX - theoreticalMoveX;
+               differenceY = suggestionY - theoreticalMoveY;
+             }
+           else {
+             return "";
+           }
+         }
+       }
+       limiter += 1;
+     }
+     return finalString;
    }
-   
    
   //** COURSEWORK ENDS HERE**//
   
