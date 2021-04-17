@@ -35,7 +35,7 @@ class Game(wall: List[(Int, Int)], bounty: List[(Int, Int, Int)], initialX: Int,
   
   
   def getPlayerPos(): (Int, Int) = {
-    return (this.positionX, this.positionY);
+    return (this.positionX, this.positionY); 
   }
   
   def getScore(): Int = {
