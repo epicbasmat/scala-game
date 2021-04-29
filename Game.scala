@@ -188,7 +188,23 @@ class Game(wall: List[(Int, Int)], bounty: List[(Int, Int, Int)], initialX: Int,
    }
    
    def suggestSolution():String = {
-     return "do it yourself";
+     var tempX = positionX
+     var tempY = positionY
+     var finalString = "";
+     bounty.map(w => { 
+       var move = suggestMove(w._1, w._2)
+       println(move);
+       if (move != "") {
+          positionX = w._1;
+          positionY = w._2;
+       }
+       finalString += move;
+     })
+     positionX = tempX;
+     positionY = tempY;
+     println(finalString);
+     println("==");   
+     return finalString;
    }  
    
    def suggestMove(suggestionX:Int, suggestionY:Int):String = { //Inefficient but homemade
